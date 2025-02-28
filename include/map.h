@@ -5,19 +5,26 @@
 #include <ctime>
 #include <queue>
 
-#define SIZEX 30
-#define SIZEY 10
+#define SIZEX 60
+#define SIZEY 30
 
 //forest settings
-#define FOREST_CHANCE 0.2
+#define FOREST_CHANCE 0.4
 #define NUM_FOREST_CLUSTERS SIZEX*SIZEY/60
 #define MAX_FOREST_CLUSTER_SIZE  50
 
+//mountains settings
+#define MOUNTAIN_CHANCE 0.3
+#define NUM_MOUNTAIN_CLUSTERS SIZEX*SIZEY/60
+#define MAX_MOUNTAIN_CLUSTER_SIZE  40
 
-
-
+//water settings
 #define WATER_CHANCE 0.3
-#define MOUNTAIN_CHANCE 0.2
+#define NUM_WATER_CLUSTERS SIZEX*SIZEY/60
+#define MAX_WATER_CLUSTER_SIZE  30
+
+
+
 
 const std::string RESET = "\033[0m";
 const std::string BROWN = "\033[38;5;94m";   // Brunatny
@@ -82,12 +89,15 @@ void map::showMap()
 
 void map::generateForest()
 {
+    std::mt19937 generator(static_cast<unsigned int>(std::time(nullptr)));
     std::uniform_int_distribution<int> distY(0, SIZEY - 1);
     std::uniform_int_distribution<int> distX(0, SIZEX - 1);
 
     std::bernoulli_distribution distribution(FOREST_CHANCE);
+    std::uniform_int_distribution<int> distribution2(1, NUM_FOREST_CLUSTERS);
 
-    for (int i = 0; i < NUM_FOREST_CLUSTERS; ++i) {
+
+    for (int i = 0; i < distribution2(generator); ++i) {
     int seedY = distY(generator);
     int seedX = distX(generator);
     
@@ -130,39 +140,142 @@ void map::generateForest()
 
 void map::generateMountains()
 {
-    std::bernoulli_distribution distribution(MOUNTAIN_CHANCE);
+    std::mt19937 generator(static_cast<unsigned int>(std::time(nullptr)));
+    std::uniform_int_distribution<int> distY(0, SIZEY - 1);
+    std::uniform_int_distribution<int> distX(0, SIZEX - 1);
 
-    for (int y = 0; y < SIZEY; ++y)
-    {
-        for (int x = 0; x < SIZEX; ++x)
-        {
-            if (distribution(generator)&&tablicaZnakow[y][x] == 'Z')
-            {
-                tablicaZnakow[y][x] = 'M';
+    std::bernoulli_distribution distribution(MOUNTAIN_CHANCE);
+    std::uniform_int_distribution<int> distribution2(1, NUM_MOUNTAIN_CLUSTERS);
+
+
+    for (int i = 0; i < distribution2(generator); ++i) {
+    int seedY = distY(generator);
+    int seedX = distX(generator);
+    
+    if (tablicaZnakow[seedY][seedX] == 'Z') {
+        tablicaZnakow[seedY][seedX] = 'M';
+        
+        // Rozprzestrzenianie się klastrów
+        std::queue<std::pair<int, int>> q;
+        q.push({seedY, seedX});
+        int clusterSize = 1;
+        
+        while (!q.empty() && clusterSize < MAX_MOUNTAIN_CLUSTER_SIZE) {
+            auto [y, x] = q.front();
+            q.pop();
+            
+            // Sprawdzenie sąsiadów
+            std::vector<std::pair<int, int>> neighbors = {
+                {y-1, x}, {y+1, x}, {y, x-1}, {y, x+1},
+                {y-1, x-1}, {y-1, x+1}, {y+1, x-1}, {y+1, x+1}
+            };
+            
+            for (auto &[ny, nx] : neighbors) {
+                // Sprawdzenie granic mapy
+                if (ny >= 0 && ny < SIZEY && nx >= 0 && nx < SIZEX) {
+                    if (tablicaZnakow[ny][nx] == 'Z') {
+                        // Prawdopodobieństwo dodania do klastru
+                        if (distribution(generator)) { 
+                            tablicaZnakow[ny][nx] = 'M';
+                            q.push({ny, nx});
+                            clusterSize++;
+                            if (clusterSize >= MAX_MOUNTAIN_CLUSTER_SIZE) break;
+                        }
+                    }
+                }
             }
         }
     }
+}
 }
 
 void map::generateWater()
 {
-    std::bernoulli_distribution distribution(WATER_CHANCE);
+    std::mt19937 generator(static_cast<unsigned int>(std::time(nullptr)));
+    std::uniform_int_distribution<int> distY(0, SIZEY - 1);
+    std::uniform_int_distribution<int> distX(0, SIZEX - 1);
 
-    for (int y = 0; y < SIZEY; ++y)
-    {
-        for (int x = 0; x < SIZEX; ++x)
-        {
-            if (distribution(generator)&&tablicaZnakow[y][x] == 'Z')
-            {
-                tablicaZnakow[y][x] = 'W';
+    std::bernoulli_distribution distribution(WATER_CHANCE);
+    std::uniform_int_distribution<int> distribution2(1, NUM_WATER_CLUSTERS);
+
+
+    for (int i = 0; i < distribution2(generator); ++i) {
+    int seedY = distY(generator);
+    int seedX = distX(generator);
+    
+    if (tablicaZnakow[seedY][seedX] == 'Z') {
+        tablicaZnakow[seedY][seedX] = 'W';
+        
+        // Rozprzestrzenianie się klastrów
+        std::queue<std::pair<int, int>> q;
+        q.push({seedY, seedX});
+        int clusterSize = 1;
+        
+        while (!q.empty() && clusterSize < MAX_WATER_CLUSTER_SIZE) {
+            auto [y, x] = q.front();
+            q.pop();
+            
+            // Sprawdzenie sąsiadów
+            std::vector<std::pair<int, int>> neighbors = {
+                {y-1, x}, {y+1, x}, {y, x-1}, {y, x+1},
+                {y-1, x-1}, {y-1, x+1}, {y+1, x-1}, {y+1, x+1}
+            };
+            
+            for (auto &[ny, nx] : neighbors) {
+                // Sprawdzenie granic mapy
+                if (ny >= 0 && ny < SIZEY && nx >= 0 && nx < SIZEX) {
+                    if (tablicaZnakow[ny][nx] == 'Z') {
+                        // Prawdopodobieństwo dodania do klastru
+                        if (distribution(generator)) { 
+                            tablicaZnakow[ny][nx] = 'W';
+                            q.push({ny, nx});
+                            clusterSize++;
+                            if (clusterSize >= MAX_WATER_CLUSTER_SIZE) break;
+                        }
+                    }
+                }
+            }
+        }
+    }else if(tablicaZnakow[seedY][seedX] == 'F'){
+        tablicaZnakow[seedY][seedX] = 'B';
+        
+        // Rozprzestrzenianie się klastrów
+        std::queue<std::pair<int, int>> q;
+        q.push({seedY, seedX});
+        int clusterSize = 1;
+        
+        while (!q.empty() && clusterSize < MAX_WATER_CLUSTER_SIZE) {
+            auto [y, x] = q.front();
+            q.pop();
+            
+            // Sprawdzenie sąsiadów
+            std::vector<std::pair<int, int>> neighbors = {
+                {y-1, x}, {y+1, x}, {y, x-1}, {y, x+1},
+                {y-1, x-1}, {y-1, x+1}, {y+1, x-1}, {y+1, x+1}
+            };
+            
+            for (auto &[ny, nx] : neighbors) {
+                // Sprawdzenie granic mapy
+                if (ny >= 0 && ny < SIZEY && nx >= 0 && nx < SIZEX) {
+                    if ((tablicaZnakow[ny][nx] == 'F') && (tablicaZnakow[ny][nx] == 'Z')) {
+                        // Prawdopodobieństwo dodania do klastru
+                        if (distribution(generator)) { 
+                            tablicaZnakow[ny][nx] = 'B';
+                            q.push({ny, nx});
+                            clusterSize++;
+                            if (clusterSize >= MAX_WATER_CLUSTER_SIZE) break;
+                        }
+                    }
+                }
             }
         }
     }
 }
+}
 
 void map::inicializeMap(){
     generateForest();
-   // generateMountains();
-   // generateWater();
+    generateMountains();
+    generateWater();
     
 }
