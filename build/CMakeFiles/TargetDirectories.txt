@@ -1,0 +1,3 @@
+C:/Users/kryCyg/gra/CppGame/build/CMakeFiles/CppGame.dir
+C:/Users/kryCyg/gra/CppGame/build/CMakeFiles/edit_cache.dir
+C:/Users/kryCyg/gra/CppGame/build/CMakeFiles/rebuild_cache.dir

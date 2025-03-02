@@ -8,6 +8,8 @@
 #define SIZEX 60
 #define SIZEY 30
 
+#define MIN_DISTANCE_BETWEEN_BASES SIZEX *SIZEY / 120
+
 // forest settings
 #define FOREST_CHANCE 0.4
 #define NUM_FOREST_CLUSTERS SIZEX *SIZEY / 60
@@ -39,11 +41,14 @@ public:
     map();
     ~map();
     void showMap();
-    void inicializeMap();
+    void inicializeMap(int playerNum);
     void generateMountains();
     void generateWater();
     void generateForest();
     void makeSwamp();
+    std::vector<std::pair<int, int>> makeBases(int playerNum);
+    float getDistance(int x1, int y1, int x2, int y2);
+    bool ifFarEnough(std::vector<std::pair<int, int>> &bazy, int x1, int y1);
 };
 
 map::map(/* args */)
@@ -258,18 +263,18 @@ void map::makeSwamp()
     std::mt19937 generator(static_cast<unsigned int>(std::time(nullptr)));
     std::bernoulli_distribution distribution(0.1);
 
-    for (size_t i=0;i<SIZEY;i++)
+    for (size_t i = 0; i < SIZEY; i++)
     {
-        for (size_t j=0;j<SIZEX;j++)
+        for (size_t j = 0; j < SIZEX; j++)
         {
 
-            if (tablicaZnakow[i][j] == 'F'&&distribution(generator))
+            if (tablicaZnakow[i][j] == 'F') //&&distribution(generator)
             {
-                tablicaZnakow[i][j] = 'B';
+                // tablicaZnakow[i][j] = 'B';
 
                 // Rozprzestrzenianie się klastrów
                 std::queue<std::pair<int, int>> q;
-                q.push({i,j});
+                q.push({i, j});
                 int clusterSize = 1;
 
                 while (!q.empty() && clusterSize < MAX_WATER_CLUSTER_SIZE)
@@ -288,12 +293,12 @@ void map::makeSwamp()
                         // Sprawdzenie granic mapy
                         if (ny >= 0 && ny < SIZEY && nx >= 0 && nx < SIZEX)
                         {
-                            if ((tablicaZnakow[ny][nx] == 'F') || (tablicaZnakow[ny][nx] == 'Z'))
+                            if ((tablicaZnakow[ny][nx] == 'Z'))
                             {
                                 // Prawdopodobieństwo dodania do klastru
                                 if (distribution(generator))
                                 {
-                                    tablicaZnakow[ny][nx] = 'B';
+                                    tablicaZnakow[ny][nx] = 'S';
                                     q.push({ny, nx});
                                     clusterSize++;
                                     if (clusterSize >= MAX_WATER_CLUSTER_SIZE)
@@ -308,10 +313,67 @@ void map::makeSwamp()
     }
 }
 
-void map::inicializeMap()
+float map::getDistance(int x1, int y1, int x2, int y2)
+{
+
+    return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
+}
+
+bool map::ifFarEnough(std::vector<std::pair<int, int>> &bazy, int x1, int y1)
+{
+
+
+    for (size_t i = 0; i < bazy.size(); i++)
+    {
+        if (getDistance(bazy[i].first, bazy[i].second, x1, y1) < MIN_DISTANCE_BETWEEN_BASES)
+        {
+
+            return false;
+        }
+    }
+
+    return true;
+}
+
+std::vector<std::pair<int, int>> map::makeBases(int playerNum)
+{
+    std::mt19937 generator(static_cast<unsigned int>(std::time(nullptr)));
+    std::uniform_int_distribution<int> distY(0, SIZEY - 1);
+    std::uniform_int_distribution<int> distX(0, SIZEX - 1);
+
+    std::bernoulli_distribution distribution(0.05);
+
+    std::vector<std::pair<int, int>> bazy(1);
+
+    for (int i = 0; i < playerNum;)
+    {
+        int seedY = distY(generator);
+        int seedX = distX(generator);
+
+        if (tablicaZnakow[seedY][seedX] == 'Z'&& distribution(generator))
+        {
+            if (i == 0)
+            {
+                tablicaZnakow[seedY][seedX] = 'B';
+                bazy[i]={seedX, seedY};
+                i++;
+            }
+            else if (ifFarEnough(bazy, seedX, seedY))
+            {
+                tablicaZnakow[seedY][seedX] = 'B';
+                bazy.push_back({seedX, seedY});
+                i++;
+            }
+        }
+    }
+    return bazy;
+}
+
+void map::inicializeMap(int playerNum)
 {
     generateForest();
     generateMountains();
     generateWater();
     makeSwamp();
+    std::vector<std::pair<int, int>> bazes=makeBases(playerNum);
 }

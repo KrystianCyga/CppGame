@@ -4,7 +4,7 @@
 int main (){
     
     map myMap;
-    myMap.inicializeMap();
+    myMap.inicializeMap(3);
 
     myMap.showMap();
 
