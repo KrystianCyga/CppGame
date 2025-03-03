@@ -1,11 +1,16 @@
-cmake_minimum_required(VERSION 3.10)
-project(CppGame)
+cmake_minimum_required(VERSION 3.28)
+project(CMakeSFMLProject LANGUAGES CXX)
 
-# Ustawienia dla Debug
-set(CMAKE_BUILD_TYPE Debug)
-
-# Tworzenie katalogu bin dla pliku wykonywalnego
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+include(FetchContent)
+FetchContent_Declare(SFML
+    GIT_REPOSITORY https://github.com/SFML/SFML.git
+    GIT_TAG 3.0.0
+    GIT_SHALLOW ON
+    EXCLUDE_FROM_ALL
+    SYSTEM)
+FetchContent_MakeAvailable(SFML)
 
 # Dodajemy katalog nagłówków
 include_directories(include)
@@ -13,8 +18,6 @@ include_directories(include)
 # Pobieramy wszystkie pliki źródłowe
 file(GLOB SOURCES "src/*.cpp")
 
-# Tworzymy plik wykonywalny
-add_executable(CppGame ${SOURCES})
-
-# Dodajemy katalogi nagłówkowe dla targetu CppGame
-target_include_directories(CppGame PRIVATE include)
+add_executable(main src/main.cpp)
+target_compile_features(main PRIVATE cxx_std_17)
+target_link_libraries(main PRIVATE SFML::Graphics)
