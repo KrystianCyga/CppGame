@@ -15,6 +15,7 @@
 
 # Pliki VS Code
 /.vscode/
+*.code-workspace
 
 # Pliki tymczasowe systemowe
 *.tmp
