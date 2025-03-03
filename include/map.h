@@ -6,6 +6,7 @@
 #include <queue>
 #include <map>
 #include <SFML/Graphics.hpp>
+#include "Astar.h"
 
 #define SIZEX 60
 #define SIZEY 30
@@ -29,7 +30,11 @@
 #define NUM_WATER_CLUSTERS SIZEX *SIZEY / 60
 #define MAX_WATER_CLUSTER_SIZE 40
 
-
+const std::string RESET = "\033[0m";
+const std::string BROWN = "\033[38;5;94m"; // Brunatny
+const std::string BLUE = "\033[34m";       // Niebieski
+const std::string GREEN = "\033[32m";      // Zielen
+const std::string GREY = "\033[90m";       // Gory
 
 class map
 {
@@ -40,7 +45,8 @@ private:
 public:
     map();
     ~map();
-    void showMap(sf::RenderWindow& window);
+    void showMap(sf::RenderWindow &window);
+    void showMap();
     void inicializeMap(int playerNum);
     void generateMountains();
     void generateWater();
@@ -48,6 +54,7 @@ public:
     void makeSwamp();
     std::vector<std::pair<int, int>> makeBases(int playerNum);
     bool ifFarEnough(std::vector<std::pair<int, int>> &bazy, int x1, int y1);
+    bool isPossibleRouteBetweenPoint(const std::vector<std::pair<int, int>> &bazy, int x1, int y1);
 };
 
 map::map(/* args */)
@@ -59,36 +66,40 @@ map::~map()
 {
 }
 
-
-void map::showMap(sf::RenderWindow& window){
+void map::showMap(sf::RenderWindow &window)
+{
     // Definiowanie kolorów dla poszczególnych znaków
     std::map<char, sf::Color> colorMap = {
-        
-            {'F', sf::Color(34, 139, 34)},   // las - ciemnozielony (Forest Green)
-            {'W', sf::Color(0, 191, 255)},   // woda - jasnoniebieski (Deep Sky Blue)
-            {'Z', sf::Color(139, 69, 19)},   // ziemia - brązowy (Saddle Brown)
-            {'M', sf::Color(169, 169, 169)}, // góry - szary (Dark Gray)
-            {'B', sf::Color(255, 0, 0)},     // bazy - czerwony (Red)
-            {'S', sf::Color(107, 152, 35)}   // bagna - oliwkowozielony (Olive Drab)
-        
-        
+
+        {'F', sf::Color(34, 139, 34)},   // las - ciemnozielony (Forest Green)
+        {'W', sf::Color(0, 191, 255)},   // woda - jasnoniebieski (Deep Sky Blue)
+        {'Z', sf::Color(139, 69, 19)},   // ziemia - brązowy (Saddle Brown)
+        {'M', sf::Color(169, 169, 169)}, // góry - szary (Dark Gray)
+        {'B', sf::Color(255, 0, 0)},     // bazy - czerwony (Red)
+        {'S', sf::Color(107, 152, 35)}   // bagna - oliwkowozielony (Olive Drab)
+
         // Dodaj więcej znaków i kolorów w razie potrzeby
     };
 
-     // Rozmiar pojedynczego kafelka
+    // Rozmiar pojedynczego kafelka
 
     // Iteracja po tablicy znaków i rysowanie kafelków
-    for (size_t y = 0; y < tablicaZnakow.size(); ++y) {
-        for (size_t x = 0; x < tablicaZnakow[y].size(); ++x) {
+    for (size_t y = 0; y < tablicaZnakow.size(); ++y)
+    {
+        for (size_t x = 0; x < tablicaZnakow[y].size(); ++x)
+        {
             char znak = tablicaZnakow[y][x];
             sf::RectangleShape tile(sf::Vector2f(TILESIZE, TILESIZE));
             tile.setPosition({x * TILESIZE, y * TILESIZE});
 
             // Ustawienie koloru na podstawie znaku
             auto it = colorMap.find(znak);
-            if (it != colorMap.end()) {
+            if (it != colorMap.end())
+            {
                 tile.setFillColor(it->second);
-            } else {
+            }
+            else
+            {
                 tile.setFillColor(sf::Color::White); // Domyślny kolor, jeśli znak nie jest zmapowany
             }
 
@@ -102,6 +113,35 @@ void map::showMap(sf::RenderWindow& window){
     }
 }
 
+void map::showMap()
+{
+    for (const auto &wiersz : tablicaZnakow)
+    {
+        for (const auto &znak : wiersz)
+        {
+            switch (znak)
+            {
+            case 'Z':
+                std::cout << BROWN << znak << RESET;
+                break;
+            case 'W':
+                std::cout << BLUE << znak << RESET;
+                break;
+            case 'F':
+                std::cout << GREEN << znak << RESET;
+                break;
+            case 'M':
+                std::cout << GREY << znak << RESET;
+                break;
+            // Dodaj więcej przypadków dla innych typów terenu
+            default:
+                std::cout << znak;
+                break;
+            }
+        }
+        std::cout << std::endl; // Przejście do nowej linii po każdym wierszu
+    }
+}
 
 void map::generateForest()
 {
@@ -326,15 +366,14 @@ void map::makeSwamp()
     }
 }
 
-
 bool map::ifFarEnough(std::vector<std::pair<int, int>> &bazy, int x1, int y1)
 {
 
-
     for (size_t i = 0; i < bazy.size(); i++)
     {
-        if ([](int x1, int y1, int x2, int y2){return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));}
-        (bazy[i].first, bazy[i].second, x1, y1) < MIN_DISTANCE_BETWEEN_BASES)
+        if ([](int x1, int y1, int x2, int y2)
+            { return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2)); }
+            (bazy[i].first, bazy[i].second, x1, y1) < MIN_DISTANCE_BETWEEN_BASES)
         {
 
             return false;
@@ -342,6 +381,22 @@ bool map::ifFarEnough(std::vector<std::pair<int, int>> &bazy, int x1, int y1)
     }
 
     return true;
+}
+
+bool map::isPossibleRouteBetweenPoint(const std::vector<std::pair<int, int>> &bases, int x1, int y1)
+{
+
+        Point cel = {x1, y1};
+    
+        for (const auto &base : bases)
+        {
+            Point start = {base.first, base.second};
+            if (!AStar(tablicaZnakow, start, cel)){
+                return false;
+            }
+        }
+        return true;
+
 }
 
 std::vector<std::pair<int, int>> map::makeBases(int playerNum)
@@ -352,29 +407,36 @@ std::vector<std::pair<int, int>> map::makeBases(int playerNum)
 
     std::bernoulli_distribution distribution(0.05);
 
-    std::vector<std::pair<int, int>> bazy(1);
+    std::vector<std::pair<int, int>> bazy;
+    const int MAX_ATTEMPTS = 1000;
+    int attempts = 0;
 
-    for (int i = 0; i < playerNum;)
+    while (bazy.size() < static_cast<size_t>(playerNum) && attempts < MAX_ATTEMPTS)
     {
         int seedY = distY(generator);
         int seedX = distX(generator);
+        attempts++;
 
-        if (tablicaZnakow[seedY][seedX] == 'Z'&& distribution(generator))
+        if (tablicaZnakow[seedY][seedX] == 'Z' && distribution(generator))
         {
-            if (i == 0)
+            if (bazy.empty())
             {
                 tablicaZnakow[seedY][seedX] = 'B';
-                bazy[i]={seedX, seedY};
-                i++;
+                bazy.emplace_back(seedX, seedY);
             }
-            else if (ifFarEnough(bazy, seedX, seedY))
+            else
             {
-                tablicaZnakow[seedY][seedX] = 'B';
-                bazy.push_back({seedX, seedY});
-                i++;
+                if (ifFarEnough(bazy, seedX, seedY) &&
+                    isPossibleRouteBetweenPoint(bazy, seedX, seedY))
+                {
+                    tablicaZnakow[seedY][seedX] = 'B';
+                    bazy.emplace_back(seedX, seedY);
+                }
             }
         }
     }
+
+
     return bazy;
 }
 
@@ -384,5 +446,5 @@ void map::inicializeMap(int playerNum)
     generateMountains();
     generateWater();
     makeSwamp();
-    std::vector<std::pair<int, int>> bazes=makeBases(playerNum);
+    std::vector<std::pair<int, int>> bazes = makeBases(playerNum);
 }

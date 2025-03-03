@@ -1,14 +1,41 @@
+// .vscode/tasks.json
 {
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "CMake Build",
+            "label": "CMake Configure",
             "type": "shell",
-            "command": "cmake --build build",
+            "command": "cmake",
+            "args": [
+                "-S",
+                ".",
+                "-B",
+                "build",
+                "-DCMAKE_BUILD_TYPE=Debug"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "detail": "Konfiguracja projektu CMake w trybie Debug"
+        },
+        {
+            "label": "CMake Build",
+            "type": "shell",
+            "command": "cmake --build build",
+            "args": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "dependsOn": "CMake Configure",
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "detail": "Budowanie projektu w trybie Debug"
         }
     ]
 }
