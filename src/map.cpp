@@ -1,4 +1,4 @@
-#include "../include/map.h"
+#include "map.h"
 
 
 Map::Map(/* args */)
@@ -11,11 +11,15 @@ Map::~Map()
 }
 
 unsigned int Map::getWidth() const{
-    return tablicaZnakow[0].size();
+    return tablicaZnakow.size();
 }
 
 unsigned int Map::getHeight() const{
-    return tablicaZnakow.size();
+    return tablicaZnakow[0].size();
+}
+
+std::vector<std::vector<char>> Map::getMap() const {
+    return tablicaZnakow;
 }
 
 int Map::calculateCost(int x, int y, int targetX, int targetY) const {
@@ -38,8 +42,7 @@ int Map::calculateCost(int x, int y, int targetX, int targetY) const {
 }
 
 bool Map::isTraversable(int x, int y) const {
-    TerrainType terrain = getTerrain(x, y);
-    return terrain != TerrainType::M && terrain != TerrainType::W; // Mountains and Water are impassable by default
+    return tablicaZnakow[y][x]!='W'&&tablicaZnakow[y][x]!='M'; // Mountains and Water are impassable by default
 }
 
 TerrainType Map::getTerrain(int x, int y) const{
@@ -430,3 +433,4 @@ std::vector<std::pair<int, int>> Map::inicializeMap(int playerNum)
 
     return makeBases(playerNum);
 }
+

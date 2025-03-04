@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdio.h>
 #include <iostream>
 #include <vector>
@@ -11,7 +13,7 @@
 #define SIZEX 60
 #define SIZEY 60
 
-#define TILESIZE 16.0f
+#define TILESIZE 8.0f
 
 #define MIN_DISTANCE_BETWEEN_BASES SIZEX *SIZEY / 40
 
@@ -38,8 +40,6 @@ const std::string GREEN = "\033[32m";      // Zielen
 const std::string GREY = "\033[90m";       // Gory
 
 
-#ifndef MAP_H
-#define MAP_H
 
 enum class TerrainType {
     Z,  // Ziemia
@@ -63,6 +63,9 @@ public:
     std::vector<std::pair<int, int>> inicializeMap(int playerNum);
     unsigned int getWidth() const;
     unsigned int getHeight() const;
+    std::vector<std::vector<char>> getMap() const;
+
+
     void generateMountains();
     void generateWater();
     void generateForest();
@@ -75,5 +78,3 @@ public:
     bool isTraversable(int x, int y) const ;
 
 };
-
-#endif

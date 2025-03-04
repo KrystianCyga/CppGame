@@ -13,3 +13,4 @@ void Base::takeDamage(unsigned int damage) {
         _isAlive=false;
     }
 }
+

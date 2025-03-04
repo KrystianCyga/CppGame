@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdio.h>
 #include <iostream>
 #include <vector>
@@ -7,8 +9,7 @@
 #include <map>
 #include "map"
 
-#ifndef BAZE_H
-#define BAZE_H
+
 
 enum class Teams {
     NONE = 0,
@@ -26,7 +27,7 @@ class Base {
 private:
     std::pair<int, int> _localization;
     Teams _team;
-    unsigned int _hp;
+    int _hp;
     bool _isAlive;
 
 public:
@@ -39,12 +40,12 @@ public:
     std::pair<int, int> getLocalization() const { return _localization; }
     void setLocalization(std::pair<int, int> localization) { _localization = localization; }
 
-    unsigned int getHp() const { return _hp; }
+    int getHp() const { return _hp; }
+
     bool isAlive() const { return _isAlive; }
-    void setHp(unsigned int hp) { _hp = hp; }
+    void setHp(int hp) { _hp = hp; }
 
 
     void takeDamage(unsigned int damage);
 };
 
-#endif

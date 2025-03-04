@@ -1,7 +1,7 @@
+#pragma once
+
 #include "creature.h"
 
-#ifndef ELF_H
-#define ELF_H
 
 class Elf : public Creature {
 public:
@@ -16,4 +16,4 @@ public:
      std::string getType() const override { return "Elf"; }
 
 };
-#endif
+

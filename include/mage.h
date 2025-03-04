@@ -1,7 +1,6 @@
-#include "creature.h"
+#pragma once
 
-#ifndef MAGE_H
-#define MAGE_H
+#include "creature.h"
 
 const int MAX_MANA = 100;
 const int MANA_REGEN_RATE = 5;
@@ -22,5 +21,3 @@ public:
     void setMana(int mana) { _mana = mana; }
      std::string getType() const override { return "Mage"; }
 };
-
-#endif

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdio.h>
 #include <iostream>
 #include <vector>
@@ -9,8 +11,6 @@
 #include "map.h"
 
 
-#ifndef CREATURE_H
-#define CREATURE_H
 
 static const std::unordered_map<std::string, int> unitCosts = {
     {"Mage", 100},
@@ -36,8 +36,11 @@ public:
         _hp(hp_), _isAlive(isAlive_), _localization(localization_), _team(team_),
         _attackRange(attackRange_),_moveSpeed(moveSpeed_), _baseDamage(baseDamage_) {}
     virtual ~Creature() = default;
+    Creature(const Creature&) = delete;
+    Creature& operator=(const Creature&) = delete;
 
     virtual void move(int x, int y, const Map& map);
+    void moveTowards(int targetX, int targetY, const Map& map);
     virtual void attack(Creature& target);
     virtual void takeDamage(double damage);
     virtual double calculateDamage() const { return _baseDamage; }  // Returns damage *before* any modifiers.
@@ -56,15 +59,17 @@ public:
     void setHp(unsigned int hp) { _hp = hp; }
     void setTeam(Teams team) { _team = team; }
     void setLocalization(std::pair<int, int> localization) { _localization = localization; }
-    void setIsAlive(bool isAlive) { _isAlive = isAlive; } // Corrected the setter name
+    void setIsAlive(bool isAlive) { _isAlive = isAlive; } 
 
     //Utility
     bool isInRange(const Creature& target) const;
     bool isInRange(const Base& targetBase) const ;
 
-    virtual void specialAbility() {}; //empty virtual function
-    virtual std::string getType() const { return "Creature"; }; // Virtual function to get type
+    virtual void specialAbility() {}; 
+    virtual std::string getType() const { return "Creature"; }; 
 };
 
-#endif
+void drawUnit(sf::RenderWindow& window, const Creature& creature);
+void drawBase(sf::RenderWindow& window, const Base& base);
+
 

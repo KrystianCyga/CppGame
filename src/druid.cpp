@@ -1,25 +1,26 @@
 #include "druid.h"
-
-#include "druid.h"
+#include "player.h"
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <memory>
 
-void Druid::specialAbility() {
+void Druid::specialAbility(std::vector<Player*>& allPlayers) {
     // Find the weakest ally within a certain range
     std::vector<Creature*> alliesInRange;
 
-    // Assuming you have a way to access all creatures in the game
-    //   For example, a global list or a game manager
-    //   This is placeholder code - replace with your actual game data
-    std::vector<Creature*> allCreatures; // Replace with your actual game list
-   //GameManager::getInstance().getAllCreatures(allCreatures);
-
-    for (Creature* creature : allCreatures) {
-        if (creature->getTeam() == getTeam() && creature != this) { // Same team and not self
-            double distance = getDistance(*creature);
-            if (distance <= 3 && creature->isAlive()) { // Example range of 3 units
-                alliesInRange.push_back(creature);
+    // Access all creatures in the game through the provided vector of players
+    for (Player* player : allPlayers) {
+        if (player->getTeam() == getTeam()) {
+            const auto& creatures = player->getCreatures(); // Get creatures of this player
+            for (const auto& creaturePtr : creatures) { // Iterating through unique_ptr’s
+                Creature* creature = creaturePtr.get(); // Get raw pointer
+                if (creature != this && creature->isAlive()) { // Same team, not self, and alive
+                    double distance = getDistance(*creature);
+                    if (distance <= 3) { // Example range of 3 units
+                        alliesInRange.push_back(creature);
+                    }
+                }
             }
         }
     }
@@ -34,9 +35,11 @@ void Druid::specialAbility() {
 
     // Heal the weakest ally
     if (weakestAlly != nullptr) {
-        double healAmount = getBaseDamage() * getHealingMultiplier();  // Example: Based on druid's damage and a multiplier
-        weakestAlly->setHp(std::min(weakestAlly->getHp() + static_cast<unsigned int>(healAmount), 100u)); // Heal, but don't exceed max HP
-         std::cout << "Druid from team " << static_cast<int>(getTeam()) << " heals " << weakestAlly->getType() << " from team " << static_cast<int>(getTeam()) << " for " << healAmount << " HP." << std::endl;
+        double healAmount = getBaseDamage() * getHealingMultiplier();
+        unsigned int maxHeal =100 ; //Max Heal Amount
+        unsigned int newHP = std::min(weakestAlly->getHp() + static_cast<unsigned int>(healAmount), maxHeal);
+        weakestAlly->setHp(newHP); // Heal, but don't exceed max HP
+        std::cout << "Druid from team " << static_cast<int>(getTeam()) << " heals " << weakestAlly->getType() << " from team " << static_cast<int>(getTeam()) << " for " << healAmount << " HP. New HP is "<< newHP << std::endl;
     } else {
         std::cout << "No allies in range to heal." << std::endl;
     }

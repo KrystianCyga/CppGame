@@ -1,11 +1,11 @@
+#pragma once
+
 #include "creature.h"
 
-#ifndef GOBLIN_H
-#define GOBLIN_H
 
 class Goblin : public Creature {
 private:
-    double _criticalHitChance; // Percentage chance (e.g., 0.2 for 20%)
+    double _criticalHitChance; // Percentage chance 
     double _criticalHitMultiplier;  // Damage multiplier for a critical hit
 
 public:
@@ -18,4 +18,4 @@ public:
     double calculateDamage() const override;
     std::string getType() const override { return "Goblin"; }
 };
-#endif
+

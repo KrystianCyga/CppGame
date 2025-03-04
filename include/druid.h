@@ -1,7 +1,9 @@
+#pragma once
+
 #include "creature.h"
 
-#ifndef DRUID_H
-#define DRUID_H
+
+class Player;
 
 class Druid : public Creature {
 private:
@@ -12,8 +14,8 @@ public:
 
     ~Druid() = default;
 
-    void specialAbility() override; // Heals the weakest nearby ally
+    void specialAbility(std::vector<Player*>& allPlayers); // Heals the weakest nearby ally
     std::string getType() const override { return "Druid"; }
     double getHealingMultiplier() const { return _healingMultiplier; }
 };
-#endif
+
