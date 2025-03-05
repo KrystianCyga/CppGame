@@ -79,53 +79,57 @@ void Player::takeTurn(std::vector<Player*>& allPlayers, const Map& map) {
 
     if (!unit.isAlive()) return;
 
-    // Losowo wybierz akcję (ruch, atak, special ability)
-    int numActions = (unit.getType() == "Druid") ? 3 : 2; //3 akcje ma tylko Druid, reszta 2
-    std::uniform_int_distribution<> actionDist(0, numActions  - 1);
-    int action = actionDist(_rng);
+    // 1. Sprawdź, czy są wrogowie w pobliżu
+    Creature* closestEnemy = nullptr;
+    double minDistance = 999999.0; // Some large number
 
-    if (action == 0) {
-        // Ruch
-        int moveX = std::uniform_int_distribution<>(-1, 1)(_rng);
-        int moveY = std::uniform_int_distribution<>(-1, 1)(_rng);
-        if (unit.getLocalization().first + moveX < 0|| unit.getLocalization().first + moveX >= map.getWidth()) {
-            moveX = 0; // Zablokuj ruch w lewo
-        }
-        if (unit.getLocalization().second + moveY < 0 || unit.getLocalization().second + moveY >= map.getHeight())  {
-             moveY = 0; // Zablokuj ruch w górę
-        }
-        unit.move(moveX, moveY, map);
-        
-        std::cout << "Player " << static_cast<int>(_team) << "'s " << unit.getType() << " moved." << std::endl;
-    } else if (action == 1) {
-        // Atak
-        std::vector<Creature*> potentialTargets;
-        for (Player* opponent : allPlayers) {
-            if (opponent->getTeam() != _team) {
-                for (auto& enemyUnit : opponent->getCreatures()) {
-                    if (enemyUnit->isAlive() && unit.isInRange(*enemyUnit)) {
-                        potentialTargets.push_back(enemyUnit.get());
+    for (Player* opponent : allPlayers) {
+        if (opponent->getTeam() != _team) {
+            for (auto& enemyUnit : opponent->getCreatures()) {
+                if (enemyUnit->isAlive()) {
+                    double distance = unit.getDistance(*enemyUnit);
+                    if (distance < minDistance && unit.isInRange(*enemyUnit)) {
+                        minDistance = distance;
+                        closestEnemy = enemyUnit.get();
                     }
                 }
             }
         }
+    }
 
-        if (!potentialTargets.empty()) {
-            auto target = getRandomElement(potentialTargets, _rng);
-            if(target != nullptr){
-                 unit.attack(*target);
-                 std::cout << "Player " << static_cast<int>(_team) << "'s " << unit.getType() << " attacked a " << target->getType() << "." << std::endl;
-            }
-           
-        } else {
-            std::cout << "Player " << static_cast<int>(_team) << "'s " << unit.getType() << " found no valid targets to attack." << std::endl;
-        }
-    } else if (action == 2 && unit.getType() == "Druid"){
-        Druid* druid = dynamic_cast<Druid*>(&unit); // Safely cast to Druid*
+    // 2. Akcja w zależności od sytuacji
+    if (closestEnemy != nullptr) {
+        //Atakuj wroga
+         unit.attack(*closestEnemy);
+          std::cout << "Player " << static_cast<int>(_team) << "'s " << unit.getType() << " attacked a " << closestEnemy->getType() << "." << std::endl;
+    } else if (unit.getType() == "Druid") {
+          Druid* druid = dynamic_cast<Druid*>(&unit);
             if (druid) {
                  druid->specialAbility(allPlayers);
                   std::cout << "Player " << static_cast<int>(_team) << "'s " << unit.getType() << " used their special ability." << std::endl;
             }
+    } else {
+        // Ruszaj w kierunku najbliższej bazy wroga
+        Base* closestBase = nullptr;
+        minDistance = 999999.0;
+
+        for (Player* opponent : allPlayers) {
+            if (opponent->getTeam() != _team) {
+                Creature tempBaseCreature(opponent->getTeam(), opponent->getBase().getLocalization());
+                 double distance = unit.getDistance(tempBaseCreature);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestBase = &(opponent->getBase());
+                }
+            }
+        }
+
+        if (closestBase != nullptr) {
+             int targetX = closestBase->getLocalization().first;
+             int targetY = closestBase->getLocalization().second;
+              unit.moveTowards(targetX, targetY, map);
+             std::cout << "Player " << static_cast<int>(_team) << "'s " << unit.getType() << " moved towards enemy base." << std::endl;
+        }
     }
 }
 

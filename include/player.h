@@ -14,20 +14,21 @@ class Player
 private:
     Teams _team;
     Base _base;
-    unsigned int _gold;
+    int _gold;
     std::vector<std::unique_ptr<Creature>> _creatures;
     std::mt19937 _rng; // Random number generator 
 
 public:
-    Player(Teams team_ = Teams::NONE, std::pair<int, int> localization = {0, 0}, unsigned int gold = 100)
+    Player(Teams team_ = Teams::NONE, std::pair<int, int> localization = {0, 0}, int gold = 100)
         : _team(team_), _base(team_, localization, 1000), _gold(gold), _rng(std::random_device{}()) {}
     ~Player() = default;
     Player& operator=(const Player&) = delete;
 
-    unsigned int getGold() const { return _gold; }
-    void setGold(unsigned int gold) { _gold = gold; }
+    int getGold() const { return _gold; }
+    void setGold(int gold) { _gold = gold; }
     Teams getTeam() const { return _team; }
     Base &getBase() { return _base; } // Return by reference to allow modification
+    unsigned int getBaseHp() const { return _base.getHp(); }
     const std::vector<std::unique_ptr<Creature>> &getCreatures() const { return _creatures; }
 
     void buyRandomUnits(const Map &map);

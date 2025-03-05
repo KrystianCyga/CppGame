@@ -1,5 +1,7 @@
 # Pliki i katalogi generowane przez CMake
 /build/
+/build/*
+/build-release/
 /CMakeCache.txt
 /CMakeFiles/
 /cmake_install.cmake

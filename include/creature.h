@@ -22,7 +22,7 @@ static const std::unordered_map<std::string, int> unitCosts = {
 
 class Creature {
 protected:
-    unsigned int _hp;
+    int _hp;
     std::pair<int, int> _localization;
     Teams _team;
     bool _isAlive;
@@ -45,9 +45,10 @@ public:
     virtual void takeDamage(double damage);
     virtual double calculateDamage() const { return _baseDamage; }  // Returns damage *before* any modifiers.
     double getDistance(const Creature& other) const; // Distance between two creatures
+    double getDistance(const Point& other) const;
 
     // Getters
-    unsigned int getHp() const { return _hp; }
+    int getHp() const { return _hp; }
     Teams getTeam() const { return _team; }
     std::pair<int, int> getLocalization() const { return _localization; }
     bool isAlive() const { return _isAlive; }

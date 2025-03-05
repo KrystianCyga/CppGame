@@ -100,7 +100,7 @@ bool AStar(std::vector<std::vector<char>> tablicaZnakow, const Point& start, con
     return false;
 }
 
-std::vector<Point> AStar(const std::vector<std::vector<char>>& tablicaZnakow, const Point& start, const Point& goal) {
+std::vector<Point> AStarV(const std::vector<std::vector<char>>& tablicaZnakow, const Point& start, const Point& goal) {
     std::vector<Point> path; // Inicjalizacja pustej ścieżki
      int sizeX = tablicaZnakow[0].size();
     int sizeY = tablicaZnakow.size();

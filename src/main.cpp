@@ -5,30 +5,31 @@
 
 int main()
 {
-    unsigned int x= SIZEX*TILESIZE;
-    unsigned int y= SIZEY*TILESIZE;
+    unsigned int x = SIZEX * TILESIZE;
+    unsigned int y = SIZEY * TILESIZE;
     auto window = sf::RenderWindow(sf::VideoMode({x, y}), "Mapa Gry z SFML");
-    window.setFramerateLimit(60);
+    window.setFramerateLimit(140);
 
     Map myMap;
-    unsigned int iloscGraczy = 4;
+    unsigned int iloscGraczy = 10;
 
     std::vector<std::pair<int, int>> bazy = myMap.inicializeMap(iloscGraczy);
 
-    std::vector<Player> gracze;
+    std::vector<Player *> gracze;
     for (size_t i = 0; i < bazy.size(); ++i)
     {
-        gracze.emplace_back(static_cast<Teams>(i + 1), bazy[i], 300); // Daj każdemu graczowi 300 złota
-        gracze.back().buyRandomUnits(myMap);                          // Kup losowe jednostki na start
+        gracze.push_back(new Player(static_cast<Teams>(i + 1), bazy[i], 1000)); // Daj każdemu graczowi 300 złota
+        gracze.back()->buyRandomUnits(myMap);                                  // Kup losowe jednostki na start
     }
 
-    while (true)
+    // Pętla gry - trwa dopóki więcej niż jeden gracz ma żywą bazę
+    while (window.isOpen())
     {
         // Sprawdź czy tylko jeden gracz ma żywą bazę
         int aliveBases = 0;
-        for (auto &gracz : gracze)
+        for (const auto &gracz : gracze)
         {
-            if (gracz.getBase().getHp() > 0)
+            if (gracz->getBase().getHp() > 0)
             {
                 aliveBases++;
             }
@@ -37,15 +38,16 @@ int main()
         if (aliveBases <= 1)
         {
             std::cout << "Game Over! ";
-            for (auto &gracz : gracze)
+            for (const auto &gracz : gracze)
             {
-                if (gracz.getBase().getHp() > 0)
+                if (gracz->getBase().getHp() > 0)
                 {
-                    std::cout << "Player " << static_cast<int>(gracz.getTeam()) << " won!" << std::endl;
+                    std::cout << "Player " << static_cast<int>(gracz->getTeam()) << " won!" << std::endl;
                 }
             }
             break;
         }
+
         // Event
         while (const std::optional event = window.pollEvent())
         {
@@ -58,37 +60,46 @@ int main()
         }
 
         // Wykonaj turę dla każdego gracza
-        for (size_t i = 0; i < gracze.size(); ++i) {
-            std::vector<Player*> opponents;
-            for (size_t j = 0; j < gracze.size(); ++j) {
-                if (i != j) {
-                    opponents.push_back(&gracze[j]); // Push back a POINTER to the existing Player object
-                }
-            }
-
-            gracze[i].takeTurn(opponents, myMap); // Przekazujesz kopię gracze[i]???
-            gracze[i].removeDeadUnits();
-        }
-
-        // Usuwanie martwych jednostek od każdego gracza
-        for (auto &gracz : gracze)
+        for (size_t i = 0; i < gracze.size(); ++i)
         {
-            gracz.removeDeadUnits();
+            // // Zbierz listę przeciwników (wszyscy oprócz aktualnego gracza)
+            std::vector<Player *> allPlayers = gracze; 
+
+            gracze[i]->takeTurn(allPlayers, myMap);
+            gracze[i]->removeDeadUnits();
+        }
+        // Usuń graczy, którzy przegrali (baza zniszczona)
+        for (int i = 0; i < gracze.size();)
+        {
+            if (gracze[i]->getBase().getHp() <= 0)
+            {
+                std::cout << "Player " << static_cast<int>(gracze[i]->getTeam()) << "'s base was destroyed!" << std::endl;
+
+                // Delete the player object
+                delete gracze[i];
+
+                // Erase from the vector
+                gracze.erase(gracze.begin() + i);
+            }
+            else
+            {
+                ++i;
+            }
         }
 
-        // Symulacja strat
+        // Symulacja strat 
         for (auto &gracz : gracze)
         {
             for (auto &innyGracz : gracze)
             {
-                if (gracz.getTeam() != innyGracz.getTeam())
+                if (gracz->getTeam() != innyGracz->getTeam())
                 {
                     // Każda jednostka atakuje bazę przeciwnika (uproszczone)
-                    for (auto &jednostka : gracz.getCreatures())
+                    for (auto &jednostka : gracz->getCreatures())
                     {
-                        if (jednostka->isInRange(innyGracz.getBase()))
+                        if (jednostka->isInRange(innyGracz->getBase()))
                         {
-                            innyGracz.getBase().takeDamage(10);
+                            innyGracz->getBase().takeDamage(10);
                             break;
                         }
                     }
@@ -96,43 +107,25 @@ int main()
             }
         }
 
-        // Czyszczenie okna
+        // Czyszczenie okna 
         window.clear(sf::Color::Black);
         myMap.showMap(window);
         for (auto &gracz : gracze)
-            drawBase(window, gracz.getBase());
+            drawBase(window, gracz->getBase());
         for (auto &gracz : gracze)
         {
-            for (auto &creature : gracz.getCreatures())
+            for (auto &creature : gracz->getCreatures())
                 drawUnit(window, *creature);
         }
 
-        // Rysowanie mapy i jednostek (SFML code here)
-        // drawMap(window, myMap);
-        //  drawUnits(window, gracze);  Potrzebujesz napisać te funkcje
 
         window.display();
     }
-
-    /* Główna pętla gry
-    while (window.isOpen())
+    // Deallocating memory
+    for (auto &gracz : gracze)
     {
-        while (const std::optional event = window.pollEvent())
-        {
-            // Obsługa zdarzeń
-            if (event->is<sf::Event::Closed>())
-                window.close();
-        }
-
-        // Czyszczenie okna
-        window.clear(sf::Color::Black);
-
-        // Rysowanie mapy
-        myMap.showMap(window);
-
-        // Wyświetlanie zawartości okna
-        window.display();
-    }*/
+        delete gracz;
+    }
 
     return 0;
 }

@@ -10,6 +10,12 @@ double Creature::getDistance(const Creature& other) const {
     return std::sqrt(dx * dx + dy * dy);
 }
 
+double Creature::getDistance(const Point& other) const {
+    int dx = other.x - _localization.first;
+    int dy = other.y - _localization.second;
+    return std::sqrt(dx * dx + dy * dy);
+}
+
 void Creature::move(int x, int y, const Map& map) {
     // Basic move implementation - needs more robust validation and pathfinding
         int newX = _localization.first + x;
@@ -52,7 +58,7 @@ void Creature::moveTowards(int targetX, int targetY, const Map& map) {
 }
 
 void Creature::takeDamage(double damage) {
-    _hp -= static_cast<unsigned int>(damage);
+    _hp -= static_cast<int>(damage);
     if (_hp <= 0) {
         _hp = 0;
         _isAlive = false;
@@ -91,7 +97,7 @@ bool Creature::isInRange(const Base& targetBase) const {
 }
 
 void drawUnit(sf::RenderWindow& window, const Creature& creature) {
-    sf::CircleShape unitShape(TILESIZE/4); // Radius of 16 pixels
+    sf::CircleShape unitShape(TILESIZE/2); // Radius of 16 pixels
     sf::Vector2f vector;
 
     vector.x=static_cast<float>(creature.getLocalization().first) * TILESIZE;

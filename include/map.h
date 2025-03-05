@@ -10,12 +10,12 @@
 #include <SFML/Graphics.hpp>
 #include "Astar.h"
 
-#define SIZEX 60
-#define SIZEY 60
+#define SIZEX 120
+#define SIZEY 120
 
 #define TILESIZE 8.0f
 
-#define MIN_DISTANCE_BETWEEN_BASES SIZEX *SIZEY / 40
+#define MIN_DISTANCE_BETWEEN_BASES SIZEX *SIZEY / 120
 
 // forest settings
 #define FOREST_CHANCE 0.5
